@@ -241,8 +241,27 @@ const UUID_ZERO = '00000000-0000-0000-0000-000000000000';
 
 async function upsert(tabela, linhas, conflict) {
   if (!linhas || linhas.length === 0) return;
-  const { error } = await supabase.from(tabela).upsert(linhas, { onConflict: conflict });
-  if (error) throw error;
+  // Bancos v1 têm PK só em (id); o schema novo usa PK composta (user_id,id).
+  // Tenta na ordem: o pedido original, depois 'id', depois 'user_id,id',
+  // depois 'user_id' (marca/metas). A primeira que o banco aceitar vence.
+  const tentativas = [];
+  if (conflict) tentativas.push(conflict);
+  for (const c of ['id', 'user_id,id', 'user_id']) {
+    if (!tentativas.includes(c)) tentativas.push(c);
+  }
+  let ultimoErro = null;
+  for (const c of tentativas) {
+    const { error } = await supabase.from(tabela).upsert(linhas, { onConflict: c });
+    if (!error) return;
+    ultimoErro = error;
+    const msg = String(error.message || '');
+    // Só vale tentar a próxima chave se o erro for de ON CONFLICT;
+    // qualquer outro erro (RLS, rede, coluna) aborta na hora.
+    if (error.code !== '42P10' && !/ON CONFLICT|no unique|exclusion constraint/i.test(msg)) {
+      throw error;
+    }
+  }
+  throw ultimoErro;
 }
 
 // Persiste uma coleção inteira (chamado pelo saveData com as STORAGE_KEYS).
