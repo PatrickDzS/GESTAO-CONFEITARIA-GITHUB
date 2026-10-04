@@ -1,22 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-// A conexão vem de public/config.js, carregado pelo index.html.
-// Motivo: esse arquivo NÃO passa pelo build, então o app conecta no Supabase
-// mesmo que a hospedagem não tenha nenhuma variável de ambiente configurada.
-// Se o config.js não existir, caímos nas variáveis de ambiente (Vercel/.env).
-const cfg = (typeof window !== 'undefined' && window.__SUPABASE__) || {};
-
+// O Vite só embute variáveis VITE_* no bundle. A integração nativa
+// Vercel↔Supabase cria nomes SEM esse prefixo, então aceitamos os dois:
+// se algum dia o build expor os outros nomes, o app conecta sozinho.
 const rawUrl = String(
-  cfg.url
-  || import.meta.env.VITE_SUPABASE_URL
+  import.meta.env.VITE_SUPABASE_URL
   || import.meta.env.NEXT_PUBLIC_SUPABASE_URL
   || import.meta.env.SUPABASE_URL
   || ''
 ).trim();
 // Normaliza: sem barra final e sem /rest/v1 (causa 404 no Auth)
 const url = rawUrl.replace(/\/+$/, '').replace(/\/rest\/v1$/, '');
-const anonKey = cfg.key
-  || import.meta.env.VITE_SUPABASE_ANON_KEY
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
   || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   || import.meta.env.SUPABASE_ANON_KEY;
 
@@ -26,3 +21,19 @@ export const supabaseUrl = url;
 export const supabaseAnonKey = anonKey;
 
 export const supabase = bancoAtivo ? createClient(url, anonKey) : null;
+
+// Diagnóstico do que CHEGOU no bundle (sem expor a chave).
+// Usado na tela de login e em Configurações → Banco de dados.
+export function diagSupabase() {
+  const host = url ? String(url.split('://')[1] || url).split('/')[0] : '';
+  const fonte = import.meta.env.VITE_SUPABASE_URL ? 'VITE_ (manual)'
+    : (import.meta.env.NEXT_PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL ? 'integração Vercel' : 'nenhuma');
+  return {
+    bancoAtivo,
+    fonte,
+    temUrl: Boolean(url),
+    host: host || '(ausente)',
+    temKey: Boolean(anonKey),
+    keyResumo: anonKey ? (String(anonKey).slice(0, 6) + '…' + String(anonKey).slice(-4) + ' · ' + String(anonKey).length + ' chars') : '(ausente)'
+  };
+}
