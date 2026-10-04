@@ -2,7 +2,7 @@
 // Dados salvos localmente no navegador (LocalStorage) para persistência completa
 import './index.css';
 import { bancoAtivo, carregarBanco, persistirColecao, excluirDoBanco, excluirLoteDoBanco } from './db.js';
-import { supabaseUrl, supabaseAnonKey, diagSupabase } from './supabase.js';
+import { supabaseUrl, supabaseAnonKey } from './supabase.js';
 import { sessaoAtual, entrar, criarConta, sair, emailDaSessao, garantirPerfil } from './auth.js';
 
 const STORAGE_KEYS = {
@@ -1079,7 +1079,6 @@ async function initApp() {
   appCarregado = true;
   esconderLogin();
   garantirPerfil().catch(() => {});
-  try { console.log('[boot] supabase:', diagSupabase()); } catch (e) { /* sem console */ }
   const dash = document.getElementById('tab-dashboard');
   if (dash) {
     dash.innerHTML = `<div class="bg-white p-8 rounded-2xl border border-slate-200 text-center text-sm text-slate-500">Carregando dados do banco…</div>`;
@@ -1330,8 +1329,7 @@ function aplicarEstadoBanco(banco) {
   marca = { ...MARCA_PADRAO, ...(banco.marca || {}) };
   sincronizarClientesDosPedidos(false);
   // Atualiza o cache local com o que veio do banco
-  Object.values(STORAGE_KEYS).forEach(escreverCacheLocal);
-  localStorage.setItem(STORAGE_KEYS.MARCA, JSON.stringify(marca));
+  Object.values(STORAGE_KEYS).forEach(gravarCacheLocalSeguro);
   _dadosVersao++;
 }
 
@@ -1381,22 +1379,46 @@ function saveData(key) {
   }
   // Dados mudaram: invalida os caches de cálculo (financeiro, caixa, MRP)
   _dadosVersao++;
-  // Sempre grava o cache local (funciona offline)
-  escreverCacheLocal(key);
-  // E espelha no Supabase em segundo plano
+  // O BANCO É A FONTE. A gravação no Supabase não pode depender de nada local:
+  // antes ela vinha depois do localStorage, e se o navegador estourasse a cota
+  // (logo da marca é dataURL e pesa muito) o saveData morria ali e o banco
+  // nunca recebia nada — o item aparecia na tela e sumia ao recarregar.
   if (bancoAtivo) {
     setStatusSalvo('salvando');
     persistirColecao(key, coletarEstado())
-      .then(() => setStatusSalvo('ok', 'Salvo ✓ ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })))
+      .then(() => {
+        // Cache local só é atualizado DEPOIS do banco: se ele falhar,
+        // o próximo save reenvia tudo e nada fica perdido.
+        gravarCacheLocalSeguro(key);
+        setStatusSalvo('ok', 'Salvo ✓ ' + new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+      })
       .catch(err => {
         console.error('Falha ao salvar no Supabase:', err);
-        setStatusSalvo('erro', 'Salvo só neste navegador');
-        showToast('Não foi possível salvar no banco. Tentaremos de novo no próximo salvamento.', false);
+        const msg = String((err && err.message) || err);
+        if (msg === 'sem-sessao') {
+          // Sem login o banco não aceita gravação (RLS exige auth.uid()).
+          setStatusSalvo('erro', 'Entre na sua conta');
+          showToast('Você não está logada. Entre na sua conta para salvar no banco.', false);
+          try { mostrarLogin(); } catch (e) { /* sem tela de login */ }
+          return;
+        }
+        setStatusSalvo('erro', 'Não salvou no banco');
+        showToast('O banco recusou a gravação: ' + msg.slice(0, 120), false);
       });
   } else {
+    gravarCacheLocalSeguro(key);
     setStatusSalvo('ok', 'Salvo ✓ (local)');
   }
   updateBadges();
+}
+
+// Cache local nunca pode derrubar o salvamento: cota estourada é ignorada.
+function gravarCacheLocalSeguro(key) {
+  try {
+    escreverCacheLocal(key);
+  } catch (err) {
+    console.warn('Cache local não gravado (cota do navegador):', err);
+  }
 }
 
 function formatMoeda(valor) {
@@ -8166,18 +8188,6 @@ function abrirConfiguracoes() {
             <span class="text-slate-400">• ${insumos.length} insumos • ${pedidos.length} pedidos</span>
           </span>
         </div>
-        ${(() => {
-          let d = { bancoAtivo, fonte: '—', temUrl: false, host: '(?)', temKey: false, keyResumo: '(?)' };
-          try { d = { ...d, ...diagSupabase() }; } catch (e) { /* sem diag */ }
-          const erro = window.__erroBoot || window.__erroBanco || '';
-          return `<div class="mt-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-[11px] text-slate-600 space-y-0.5">
-            <p><strong>Diagnóstico da conexão</strong> <span class="text-slate-400">(o que chegou neste build)</span></p>
-            <p>Servidor: <strong class="${d.temUrl ? 'text-slate-800' : 'text-red-600'}">${esc(d.host)}</strong> <span class="text-slate-400">(${esc(d.fonte || '—')})</span></p>
-            <p>Chave: <strong class="${d.temKey ? 'text-slate-800' : 'text-red-600'}">${d.temKey ? 'presente (' + esc(d.keyResumo) + ')' : 'AUSENTE'}</strong></p>
-            ${erro ? `<p class="text-red-600">Último erro: <span class="font-mono">${esc(erro)}</span></p>` : ''}
-            ${!d.temUrl || !d.temKey ? `<p class="text-amber-700">Faltando variável no build: cadastre <code>VITE_SUPABASE_URL</code> e <code>VITE_SUPABASE_ANON_KEY</code> na Vercel e faça um novo deploy.</p>` : ''}
-          </div>`;
-        })()}
         ${bancoAtivo ? `
           <button onclick="sincronizarLocalComBanco()" class="mt-2 w-full px-3 py-2 text-xs font-bold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer" title="Manda o que está salvo neste navegador para o Supabase">
             <i class="fa-solid fa-cloud-arrow-up"></i> Enviar dados locais para o banco
@@ -8192,7 +8202,6 @@ function abrirConfiguracoes() {
             <input type="file" accept=".json,application/json" class="hidden" onchange="importarBackupLocal(this)" />
           </label>
         </div>
-        <p class="text-[11px] text-slate-400 mt-1.5">Os dados deste navegador são enviados ao Supabase pelo botão acima. Nada aqui apaga seus dados.</p>
       </div>
       <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-400">
         <span>Gestão de Confeitaria • v1.3</span>
