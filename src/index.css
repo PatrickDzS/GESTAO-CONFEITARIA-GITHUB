@@ -1,0 +1,256 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --color-creme: #FFF8F1;
+  --color-cacau: #3E2A23;
+  --color-terracota: #C65D3A;
+  --color-terracota-dark: #A84A2D;
+  --color-dourado: #C9A86A;
+}
+
+html, body {
+  background: #FFF8F1;
+}
+
+/* Títulos com cara de confeitaria (com fallback offline para Georgia) */
+h1, h2, h3, .font-display {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  letter-spacing: -0.01em;
+}
+
+/* ===== HEADER UNIFORME (sem linha divisória) ===== */
+header {
+  background: #FFF8F1 !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== BOTÃO PRIMÁRIO terracota com gradiente ===== */
+.bg-pink-600 {
+  background: linear-gradient(135deg, #D96C75 0%, #C65D3A 100%) !important;
+  box-shadow: 0 2px 8px rgba(198, 93, 58, 0.35) !important;
+}
+.hover\:bg-pink-700:hover {
+  background: linear-gradient(135deg, #C65D3A 0%, #A84A2D 100%) !important;
+  box-shadow: 0 4px 12px rgba(198, 93, 58, 0.45) !important;
+}
+.bg-pink-500 { background-color: #C65D3A !important; }
+.text-pink-600, .text-pink-700 { color: #A84A2D !important; }
+.bg-pink-50 { background-color: #FBEBE2 !important; }
+.border-pink-200, .border-pink-300 { border-color: #EFC9B5 !important; }
+.ring-pink-500, .focus\:outline-pink-500:focus { outline-color: #C65D3A !important; }
+.focus\:ring-pink-500:focus { --tw-ring-color: #C65D3A !important; }
+
+/* Acentos azuis/roxos unificados ao terracota */
+.bg-blue-600 {
+  background: linear-gradient(135deg, #D96C75 0%, #C65D3A 100%) !important;
+  box-shadow: 0 2px 8px rgba(198, 93, 58, 0.3) !important;
+}
+.hover\:bg-blue-700:hover { background-color: #A84A2D !important; }
+.bg-purple-600 { background-color: #3E2A23 !important; }
+.hover\:bg-purple-700:hover { background-color: #2A1D18 !important; }
+.bg-purple-100 { background-color: #FBEFE6 !important; }
+.text-purple-600, .text-purple-700 { color: #A84A2D !important; }
+.border-purple-200 { border-color: #EFC9B5 !important; }
+.bg-purple-50 { background-color: #FDF3EC !important; }
+.bg-slate-900 { background-color: #3E2A23 !important; }
+.hover\:bg-slate-700:hover { background-color: #2A1D18 !important; }
+
+/* Rose da Viabilidade unificado ao terracota */
+.bg-rose-600 {
+  background: linear-gradient(135deg, #D96C75 0%, #C65D3A 100%) !important;
+  box-shadow: 0 2px 8px rgba(198, 93, 58, 0.35) !important;
+}
+.hover\:bg-rose-700:hover, .hover\:bg-rose-600:hover { background-color: #A84A2D !important; }
+.hover\:bg-rose-100:hover { background-color: #F3D3BC !important; }
+.text-rose-400 { color: #D9967F !important; }
+.text-rose-500, .text-rose-600, .text-rose-700 { color: #A84A2D !important; }
+.text-rose-900 { color: #5C2E1E !important; }
+.bg-rose-50 { background-color: #FBEBE2 !important; }
+.bg-rose-100 { background-color: #F6DCCB !important; }
+.border-rose-100, .border-rose-200 { border-color: #EFC9B5 !important; }
+.border-rose-400 { border-color: #C65D3A !important; }
+.border-rose-600, .border-rose-700, .hover\:border-rose-600:hover { border-color: #A84A2D !important; }
+.ring-rose-300 { --tw-ring-color: #EFC9B5 !important; }
+.focus\:ring-rose-500:focus { --tw-ring-color: #C65D3A !important; }
+
+/* Índigo residual harmonizado */
+.bg-indigo-50 { background-color: #F7EFE3 !important; }
+.text-indigo-600 { color: #A84A2D !important; }
+
+/* ===== SIDEBAR CLARA ===== */
+#sidebar {
+  background: #FFFCF7 !important;
+  border-right: 1px solid #EBD9BE !important;
+  box-shadow: 2px 0 12px rgba(62, 42, 35, 0.05) !important;
+}
+#sidebar .tab-btn:not(.active) { color: #5C4438 !important; }
+#sidebar .tab-btn:not(.active):hover {
+  background: #F7E9D3 !important;
+  color: #3E2A23 !important;
+  transform: translateX(3px);
+}
+#sidebar .tab-btn.active {
+  background: linear-gradient(135deg, #D96C75 0%, #C65D3A 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 3px 10px rgba(198, 93, 58, 0.4) !important;
+}
+
+/* ===== EFEITOS ===== */
+button { transition: transform 0.12s ease, box-shadow 0.18s ease, background-color 0.18s ease; }
+button:active { transform: scale(0.96); }
+
+/* Entrada animada do conteúdo — só na TROCA de aba (classe .tab-enter aplicada pelo switchTab).
+   Antes era .tab-content > * e disparava a cada re-render, fazendo a grade "piscar" ao digitar. */
+.tab-enter > * { animation: rise 0.3s ease both; }
+.tab-enter > *:nth-child(2) { animation-delay: 0.04s; }
+.tab-enter > *:nth-child(3) { animation-delay: 0.08s; }
+.tab-enter > *:nth-child(4) { animation-delay: 0.12s; }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Grupos da sidebar abrem/fecham com transição suave */
+[data-grupo-body] { transition: opacity 0.2s ease; }
+
+/* Quem prefere menos movimento não vê animação nenhuma */
+@media (prefers-reduced-motion: reduce) {
+  .tab-enter > *, button, #notifPanel, #notifCount, [data-grupo-body] {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Cards com hover elevado */
+.tab-content .bg-white.rounded-2xl {
+  box-shadow: 0 1px 2px rgba(62, 42, 35, 0.06), 0 4px 14px rgba(62, 42, 35, 0.05);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.tab-content .bg-white.rounded-2xl:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(198, 93, 58, 0.14);
+}
+
+/* Modal com pop */
+#modalBox.modal-pop { animation: pop 0.22s cubic-bezier(0.34, 1.4, 0.64, 1) both; }
+@keyframes pop {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Kanban com transição suave */
+.kanban-dropzone { transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+
+/* Sino: badge pulsante + balanço no hover */
+#notifCount { animation: pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+#notifBell:hover i { animation: bell-wiggle 0.5s ease; }
+@keyframes bell-wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(14deg); }
+  75% { transform: rotate(-14deg); }
+}
+#notifPanel { animation: drop 0.18s ease both; transform-origin: top right; }
+@keyframes drop {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Tabelas densas para PC */
+table { font-variant-numeric: tabular-nums; }
+thead th { letter-spacing: 0.04em; }
+tbody tr { transition: background-color 0.15s ease; }
+
+/* Scrollbars discretas no Kanban */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #e2c9b8; border-radius: 8px; border: 2px solid #FFF8F1; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Foco visível para teclado */
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+  outline: 2px solid #C65D3A;
+  outline-offset: 2px;
+}
+
+/* ===== LEGIBILIDADE ===== */
+.tab-content { line-height: 1.55; }
+#modalBox { line-height: 1.6; }
+
+/* Tabelas: zebrado leve + separação clara */
+tbody tr:nth-child(even) { background-color: rgba(62, 42, 35, 0.025); }
+tbody tr:hover { background-color: rgba(198, 93, 58, 0.05) !important; }
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #FAF6EF !important;
+}
+
+/* <details> usados para recolher informação secundária */
+details summary { cursor: pointer; }
+details summary::marker { color: #C65D3A; }
+details[open] summary { margin-bottom: 2px; }
+
+/* Títulos de seção com hierarquia clara */
+.tab-content h2 {
+  font-size: 1.35rem;
+  margin-bottom: 2px;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+html, body { max-width: 100%; overflow-x: clip; }
+
+/* Header: título nunca estoura no celular */
+header h1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 54vw;
+}
+
+/* Tabelas do conteúdo rolam em vez de esmagar */
+#mainContainer .overflow-x-auto > table { min-width: 600px; }
+
+/* Formulários dos modais empilham no celular */
+@media (max-width: 480px) {
+  #modalBox form .grid-cols-2,
+  #modalBox form .grid-cols-3 { grid-template-columns: 1fr !important; }
+  #modalBox form [class*="col-span"] { grid-column: 1 / -1 !important; }
+  #modalBox { padding: 1.1rem !important; }
+}
+
+/* Kanban mais compacto no celular */
+@media (max-width: 767px) {
+  .kanban-dropzone { min-height: 220px !important; }
+}
+
+/* Toast nunca estoura a tela */
+#toast { max-width: calc(100vw - 2.5rem); }
+
+/* Painel de notificações respeita telas pequenas */
+#notifPanel { max-width: min(20rem, calc(100vw - 2rem)); }
+
+/* Impressão: ficha / pedido limpos */
+@media print {
+  header, #sidebar, #sidebarBackdrop, #toast, #modalContainer, #mainContainer { display: none !important; }
+  body { background: #fff; }
+  #printArea { display: block !important; color: #000; }
+  #printArea .etiqueta { border: 2px dashed #000; border-radius: 12px; padding: 16px; margin: 0 auto; max-width: 560px; font-family: Arial, sans-serif; }
+  #printArea h1 { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  #printArea table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  #printArea th, #printArea td { border: 1px solid #999; padding: 6px 8px; text-align: left; }
+}
+#printArea { display: none; }
+
+/* Modo apresentação: imprime só a tela de cardápio */
+@media print {
+  body:has(#modoApresentacao) { background: #fff; }
+  #modoApresentacao { position: static; overflow: visible; background: #fff; }
+  #modoApresentacao .max-w-5xl { padding: 0; max-width: none; }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Gestão de Confeitaria",
+  "description": "Sistema completo de gestão para confeitaria com metas de vendas, pró-labore, estoque detalhado, fichas técnicas, pedidos em kanban, previsão de compras MRP, fluxo de caixa e viabilidade de promoções com calendário comercial.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

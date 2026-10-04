@@ -1,0 +1,1 @@
+{"background_color": "#FFF8F1", "description": "Gestão pessoal para confeitaria: estoque, fichas, pedidos, caixa e promoções.", "display": "standalone", "icons": [{"purpose": "any", "sizes": "any", "src": "/icon.svg", "type": "image/svg+xml"}], "name": "Gestão de Confeitaria", "short_name": "Confeitaria", "start_url": "/", "theme_color": "#C65D3A"}
